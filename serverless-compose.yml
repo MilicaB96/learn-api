@@ -1,0 +1,5 @@
+services:
+  training-service:
+    path: training-service
+  user-service:
+    path: user-service
