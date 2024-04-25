@@ -4,16 +4,36 @@ plugins:
   - serverless-offline
   - serverless-esbuild
 
+useDotenv: true
+
 provider:
   name: aws
+  environment:
+    USER_TABLE: users
+    STUDENT_TABLE: students
+    TRAINER_TABLE: trainers
+    JWT_SECRET: ${env:JWT_SECRET}
   runtime: nodejs20.x
   stage: dev
   region: eu-west-1
+  iamRoleStatements:
+    - Effect: 'Allow'
+      Action:
+        - 'dynamodb:*'
+      Resource: 'arn:aws:dynamodb:${self:provider.region}:*:table/*'
 
 functions:
-  healthcheck:
-    handler: src/main.healthcheck
+  register:
+    handler: src/register.register
     events:
       - http:
-          path: health
-          method: GET
+          path: auth/register
+          method: POST
+          cors: true
+  login:
+    handler: src/login.login
+    events:
+      - http:
+          path: auth/login
+          method: POST
+          cors: true
