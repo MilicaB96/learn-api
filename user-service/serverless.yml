@@ -12,6 +12,8 @@ provider:
     USER_TABLE: users
     STUDENT_TABLE: students
     TRAINER_TABLE: trainers
+    SPECIALIZATION_TABLE: specializations
+    TRAINER_TO_STUDENT_TABLE: trainerToStudent
     JWT_SECRET: ${env:JWT_SECRET}
   runtime: nodejs20.x
   stage: dev
@@ -36,4 +38,39 @@ functions:
       - http:
           path: auth/login
           method: POST
+          cors: true
+  logout:
+    handler: src/logout.logout
+    events:
+      - http:
+          path: auth/logout
+          method: GET
+          cors: true
+  me:
+    handler: src/getUser.handler
+    events:
+      - http:
+          path: users/me
+          method: GET
+          cors: true
+  listSpecializations:
+    handler: src/listSpecializations.handler
+    events:
+      - http:
+          path: specializations
+          method: GET
+          cors: true
+  getStudentTrainers:
+    handler: src/getStudentTrainers.handler
+    events:
+      - http:
+          path: mytrainers
+          method: GET
+          cors: true
+  getTrainerStudents:
+    handler: src/getTrainerStudents.handler
+    events:
+      - http:
+          path: mystudents
+          method: GET
           cors: true

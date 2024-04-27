@@ -98,6 +98,7 @@ export async function register(event) {
       email: user.email,
       password: hashPassword,
       isActive: user.isActive,
+      role: user.role,
     };
 
     await docClient.send(
