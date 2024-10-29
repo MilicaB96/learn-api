@@ -4,16 +4,28 @@ plugins:
   - serverless-offline
   - serverless-esbuild
 
+useDotenv: true
+
 provider:
   name: aws
   runtime: nodejs20.x
   stage: dev
+  environment:
+    JWT_SECRET: ${env:JWT_SECRET}
+    USER_TABLE: users
+    TRAINING_TABLE: trainings
   region: eu-west-1
+  iamRoleStatements:
+    - Effect: 'Allow'
+      Action:
+        - 'dynamodb:*'
+      Resource: 'arn:aws:dynamodb:${self:provider.region}:*:table/*'
 
 functions:
-  healthcheck:
-    handler: src/main.healthcheck
+  get:
+    handler: src/get.handler
     events:
       - http:
-          path: health
+          path: trainings
           method: GET
+          cors: true
