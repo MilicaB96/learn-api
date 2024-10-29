@@ -1,9 +1,5 @@
 import { DynamoDBClient, ScanCommand } from '@aws-sdk/client-dynamodb';
-import {
-  BatchGetCommand,
-  DynamoDBDocumentClient,
-  GetCommand,
-} from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 import { HttpStatus } from '@nestjs/common';
@@ -33,81 +29,23 @@ export async function handler(event) {
 
     const user = await docClient.send(command);
 
-    //StudentTable
-    const commandStudent = new ScanCommand({
-      TableName: STUDENT_TABLE,
-      ExpressionAttributeValues: {
-        ':uid': { S: user.Item.id },
-      },
-      ExpressionAttributeNames: {
-        '#userId': 'userId',
-      },
-      FilterExpression: '#userId = :uid',
-      ProjectionExpression: 'id',
-    });
-    const responseStudent = await docClient.send(commandStudent);
-
-    //TrainerStudentPivotTable
-    const commandPivot = new ScanCommand({
+    const pivotCommand = new ScanCommand({
       TableName: TRAINER_TO_STUDENT_TABLE,
+      FilterExpression: 'student.id =:value',
       ExpressionAttributeValues: {
-        ':sid': { S: responseStudent.Items[0].id.S },
-      },
-      ExpressionAttributeNames: {
-        '#studentId': 'studentId',
-      },
-      FilterExpression: '#studentId = :sid',
-      ProjectionExpression: 'trainerId',
-    });
-    const responsePivot = await docClient.send(commandPivot);
-    if (!responsePivot.Items.length) {
-      return {
-        statusCode: HttpStatus.OK,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Credentials': true,
-        },
-        body: JSON.stringify(''),
-      };
-    }
-
-    const trainerIds = responsePivot.Items.map((obj) => {
-      const id = obj.trainerId.S;
-      return { id };
-    });
-
-    //TrainerTable
-    const commandTrainer = new BatchGetCommand({
-      RequestItems: {
-        trainers: {
-          Keys: trainerIds,
-        },
+        ':value': { S: user.Item.id },
       },
     });
 
-    const responseTrainers = await docClient.send(commandTrainer);
-
-    //UserTable
-    const userIds = responseTrainers.Responses.trainers.map((obj) => ({
-      id: obj.userId,
-    }));
-    const commandUsers = new BatchGetCommand({
-      RequestItems: {
-        users: {
-          Keys: userIds,
-        },
-      },
-    });
-    const responseUsers = await docClient.send(commandUsers);
-
-    const data = responseUsers.Responses.users.map((item, index) => {
-      return {
-        id: item.id,
-        firstName: item.firstName,
-        lastName: item.lastName,
-        specialization:
-          responseTrainers.Responses.trainers[index].specialization,
-      };
+    const pivot = await docClient.send(pivotCommand);
+    let data = [];
+    pivot.Items.map((item) => {
+      data.push({
+        id: item.trainer.M.id.S,
+        firstName: item.trainer.M.firstName.S,
+        lastName: item.trainer.M.lastName.S,
+        specialization: item.trainer.M.specialization.S,
+      });
     });
 
     return {

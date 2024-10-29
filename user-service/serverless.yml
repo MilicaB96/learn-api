@@ -57,20 +57,55 @@ functions:
     handler: src/listSpecializations.handler
     events:
       - http:
-          path: specializations
+          path: users/specializations
           method: GET
           cors: true
   getStudentTrainers:
     handler: src/getStudentTrainers.handler
     events:
       - http:
-          path: mytrainers
+          path: users/mytrainers
           method: GET
           cors: true
   getTrainerStudents:
     handler: src/getTrainerStudents.handler
     events:
       - http:
-          path: mystudents
+          path: users/mystudents
           method: GET
+          cors: true
+  changePassword:
+    handler: src/changePassword.handler
+    events:
+      - http:
+          path: /users/update-password
+          method: PUT
+          cors: true
+  listOtherTrainers:
+    handler: src/listOtherTrainers.handler
+    events:
+      - http:
+          path: users/other-trainers
+          method: GET
+          cors: true
+  addTrainers:
+    handler: src/addTrainers.handler
+    events:
+      - http:
+          path: users/add-trainers
+          method: POST
+          cors: true
+  editProfile:
+    handler: src/editProfile.handler
+    events:
+      - http:
+          path: users/me
+          method: PUT
+          cors: true
+  deleteProfile:
+    handler: src/delete.handler
+    events:
+      - http:
+          path: users/me
+          method: DELETE
           cors: true
