@@ -4,16 +4,108 @@ plugins:
   - serverless-offline
   - serverless-esbuild
 
+useDotenv: true
+
 provider:
   name: aws
+  environment:
+    USER_TABLE: users
+    STUDENT_TABLE: students
+    TRAINER_TABLE: trainers
+    SPECIALIZATION_TABLE: specializations
+    TRAINER_TO_STUDENT_TABLE: trainerToStudent
+    JWT_SECRET: ${env:JWT_SECRET}
   runtime: nodejs20.x
   stage: dev
   region: eu-west-1
+  iamRoleStatements:
+    - Effect: 'Allow'
+      Action:
+        - 'dynamodb:*'
+      Resource: 'arn:aws:dynamodb:${self:provider.region}:*:table/*'
 
 functions:
-  healthcheck:
-    handler: src/main.healthcheck
+  register:
+    handler: src/register.register
     events:
       - http:
-          path: health
+          path: auth/register
+          method: POST
+          cors: true
+  login:
+    handler: src/login.login
+    events:
+      - http:
+          path: auth/login
+          method: POST
+          cors: true
+  logout:
+    handler: src/logout.logout
+    events:
+      - http:
+          path: auth/logout
           method: GET
+          cors: true
+  me:
+    handler: src/getUser.handler
+    events:
+      - http:
+          path: users/me
+          method: GET
+          cors: true
+  listSpecializations:
+    handler: src/listSpecializations.handler
+    events:
+      - http:
+          path: users/specializations
+          method: GET
+          cors: true
+  getStudentTrainers:
+    handler: src/getStudentTrainers.handler
+    events:
+      - http:
+          path: users/mytrainers
+          method: GET
+          cors: true
+  getTrainerStudents:
+    handler: src/getTrainerStudents.handler
+    events:
+      - http:
+          path: users/mystudents
+          method: GET
+          cors: true
+  changePassword:
+    handler: src/changePassword.handler
+    events:
+      - http:
+          path: /users/update-password
+          method: PUT
+          cors: true
+  listOtherTrainers:
+    handler: src/listOtherTrainers.handler
+    events:
+      - http:
+          path: users/other-trainers
+          method: GET
+          cors: true
+  addTrainers:
+    handler: src/addTrainers.handler
+    events:
+      - http:
+          path: users/add-trainers
+          method: POST
+          cors: true
+  editProfile:
+    handler: src/editProfile.handler
+    events:
+      - http:
+          path: users/me
+          method: PUT
+          cors: true
+  deleteProfile:
+    handler: src/delete.handler
+    events:
+      - http:
+          path: users/me
+          method: DELETE
+          cors: true
